@@ -1,11 +1,12 @@
 
+# Install packages
 
 library(tidyverse)
 library(lmerTest)
 library(lme4)
 library(caret)
 
-# Create vectors of data
+# Simulate data
 
 # Region ID
 id <- rep(1:1000, each = 23)
@@ -25,6 +26,8 @@ dat <- data.frame(id, years, fire)
 # 49.136905, -125.262693 = bottom left      49.310558, -116.222505 = bottom right
 
 # Generate values so that fires mostly happen inland
+
+# Latitude
 lat <- c()
 for (i in 1:23000) {
   
@@ -37,6 +40,7 @@ for (i in 1:23000) {
 }
 dat <- data.frame(dat, lat)
 
+# Longitude
 long <- c()
 for (i in 1:23000) {
   
@@ -181,12 +185,10 @@ dat <- data.frame(dat, aug_rain)
 
 
 
-# Generate days since new years for when first wildfire forest occured
-# range from mid july to mid sept
+# Generate days since new years for when first wildfire forest occurred
+# Ranges from mid July to mid Sept
 # 226 - 286
-# normal dist so mostly in aug
-
-
+# Set a normal dist so they mostly occur in Aug
 
 date_fire <- c()
 for (i in 1:23000) {
@@ -202,39 +204,21 @@ for (i in 1:23000) {
 dat <- data.frame(dat, date_fire)
 
 
-# Train and test data
-
-traindat <- dat[1:21000,]
-head(traindat)
-testdat <- dat[21001:23000,]
-head(testdat)
 
 
 
-
-mod <- lmer(date_fire ~ lat + long + apr_temp + may_temp + june_temp + aug_temp + 
-              apr_rain + may_rain + june_rain + july_rain + july_rain + aug_rain + (1|id), data = traindat)
-summary(mod)
-
-mod <- glmer(fire ~ lat + long + apr_temp + may_temp + june_temp + aug_temp + 
-              apr_rain + may_rain + june_rain + july_rain + july_rain + aug_rain + (1|id), family = "binomial", data = traindat)
-summary(mod)
-
-
-
+# Split train and test data
 set.seed(123)
 training.samples <- dat$id %>%
   createDataPartition(p = 0.8, list = FALSE)
 
 train.data  <- dat[training.samples, ]
 test.data <- dat[-training.samples, ]
-# Build the model
-mod <- lmer(date_fire ~ lat + long + apr_temp + may_temp + june_temp + aug_temp + 
-              apr_rain + may_rain + june_rain + july_rain + july_rain + aug_rain + (1|id), data = train.data)
-summary(mod)
 
+# Build the model
 mod <- lm(date_fire ~ lat + long + apr_temp + may_temp + june_temp + aug_temp + 
-              apr_rain + may_rain + june_rain + july_rain + july_rain + aug_rain, data = train.data)
+              apr_rain + may_rain + june_rain + july_rain + july_rain + aug_rain, 
+          data = train.data)
 summary(mod)
 
 # Make predictions and compute the R2, RMSE and MAE
@@ -243,6 +227,7 @@ data.frame( R2 = R2(predictions, test.data$date_fire),
             RMSE = RMSE(predictions, test.data$date_fire),
             MAE = MAE(predictions, test.data$date_fire))
 
+# Calculate the error rate
 RMSE(predictions, test.data$date_fire)/mean(test.data$date_fire) # 4% error
 
 
@@ -250,24 +235,21 @@ RMSE(predictions, test.data$date_fire)/mean(test.data$date_fire) # 4% error
 
 set.seed(123) 
 train.control <- trainControl(method = "cv", number = 10)
+
 # Train the model
 model <- train(date_fire ~., data = dat, method = "lm",
                trControl = train.control)
+
 # Summarize the results
 print(model)
 
 
-summary(mod)
-predicted_values <- predict(mod, newdata = test.data)
 
 
-data.frame(test.data, predicted_values)
-
-# high risk test
+# Testing prediction using high risk case:
 # 50.905458, -116.419338
-# east kootenay
-# very dry, very hot
-
+# East Kootenay
+# Very dry, very hot
 
 user.data <- data.frame(
   lat = -116.419338,
@@ -286,13 +268,12 @@ user.data <- data.frame(
 
 predict(mod, newdata = user.data) 
 # 208.6411 
-# july 27
+# July 27
 
-# low risk test
+# Low risk case
 # 49.097883, -124.029345
-# nanimo
+# Nanaimo
 # very wet, very cool
-
 
 user.data <- data.frame(
   lat = -124.029345,
@@ -311,7 +292,10 @@ user.data <- data.frame(
 
 predict(mod, newdata = user.data)
 # 272.6421 
-# sept 30
+# Sept 30
 
+# SAve data to export to use with python 
 write.csv(dat, file = "predictivedat.csv")
+
+
 
