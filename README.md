@@ -3,5 +3,5 @@ GitHub repo for our ElleHacks 2023 project! WildfireWatch uses predictive modell
 
 This website runs locally (open `index.html` in your browser). The website is interactable from that point on and will route to other pages like a regular site!
 
-Code styling and resources are in the `css ` and `images` folder. The predictive model is built with Python and is stored on Colab as well as in the `wildfirewatchfinal.py` Python file.
+Code styling and resources are in the `css` and `images` folder. The predictive model is built with Python and is stored on Colab as well as in the `wildfirewatchfinal.py` Python file.
 
