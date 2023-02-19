@@ -299,34 +299,3 @@ write.csv(dat, file = "predictivedat.csv")
 
 
 
-
-
-mod <- lm(date_fire ~ lat + long + apr_temp + may_temp + june_temp + aug_temp + 
-            apr_rain + may_rain + june_rain + july_rain + july_rain + aug_rain, data = dat)
-summary(mod)
-par(mfrow = c(2, 2))  # Split the plotting panel into a 2 x 2 grid
-plot(mod)
-
-res <- resid(mod)
-plot(fitted(mod), res)
-plot(density(res))
-
-library(ggplot2)
-ggplot(dat, aes(x = aug_temp, y = date_fire)) +
-  geom_point()
-
-
-hist(dat$date_fire)
-hist(dat$july_temp)
-
-
-dat$predicted <- predict(mod)   # Save the predicted values
-dat$residuals <- residuals(mod) # Save the residual values
-
-# Quick look at the actual, predicted, and residual values
-library(dplyr)
-dat %>% 
-  select(date_fire, predicted, residuals) %>%
-  head()
-#>                    mpg predicted  residuals
-
